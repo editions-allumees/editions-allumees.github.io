@@ -229,5 +229,97 @@
       <div class="row"><a class="btn" href="./">← Revenir à la session interactive</a></div>`, false);
   }
 
-  C.type === "cartes" ? cartes(0) : accueil();
+  /* ---------- C7 : leçons, quiz, examen du code, permis ---------- */
+  function histoire(i, fin) {
+    const k = C.cartes, [t, s, img] = k[i];
+    const el = screen(`${top()}<div class="grow center">
+      ${img ? `<div class="duo"><img class="perso bob pop" src="${IMG}${img}.svg" alt=""></div>` : ""}
+      <h2 class="pop">${esc(t)}</h2><p style="font-size:1.2rem;white-space:pre-line"><b>${esc(s)}</b></p>
+      <div class="dots">${k.map((_, j) => `<i class="${j === i ? "on" : ""}"></i>`).join("")}</div>
+      <div class="row c">${i > 0 ? `<button class="btn sec" id="prev">←</button>` : ""}<button class="btn" id="next">Suivant →</button></div>
+      <p class="hint" style="margin-top:16px"><a href="#" id="vid" style="color:inherit">Version vidéo</a></p></div>`, true);
+    el.querySelector("#next").onclick = () => { audio(); chime(); i < k.length - 1 ? histoire(i + 1, fin) : fin(); };
+    const p = el.querySelector("#prev"); if (p) p.onclick = () => histoire(i - 1, fin);
+    el.querySelector("#vid").onclick = (e) => { e.preventDefault(); video(); };
+  }
+  function quiz(qs, i, score, fin, titre) {
+    if (i >= qs.length) return fin(score);
+    const q = qs[i];
+    const el = screen(`${top()}<div class="grow center">
+      <p class="hint">${esc(titre)} · question ${i + 1}/${qs.length}</p>
+      <div class="duo"><img class="perso bob" id="bipimg" src="${IMG}bip_explique.svg" alt="Bip"></div>
+      <h2>${esc(q.q)}</h2>
+      <div style="display:grid;gap:10px;max-width:520px;margin:10px auto">${q.choix.map((c, j) => `<button class="btn sec" data-j="${j}" style="justify-content:flex-start">${"ABC"[j]}. ${esc(c)}</button>`).join("")}</div>
+      <div class="msg" id="msg"></div><div class="row c" id="nx"></div></div>`, true);
+    el.querySelectorAll("[data-j]").forEach((b) => b.onclick = () => {
+      audio(); const ok = +b.dataset.j === q.bonne;
+      el.querySelectorAll("[data-j]").forEach((x) => { x.disabled = true; x.style.opacity = (+x.dataset.j === q.bonne || x === b) ? "1" : ".45"; if (+x.dataset.j === q.bonne) { x.style.background = "#2ec4b6"; x.style.color = "#fff"; } });
+      if (!ok) { b.style.background = "#ff5a4e"; b.style.color = "#fff"; }
+      el.querySelector("#bipimg").src = IMG + (ok ? "bip_bravo.svg" : "bip_stop.svg");
+      el.querySelector("#msg").textContent = ok ? pick(["Bravo, conducteur !", "Parfait !", "Tu as le permis dans la poche !", "Excellente conduite !"]) : "Pas tout à fait… La bonne réponse est en vert.";
+      if (ok) chime();
+      el.querySelector("#nx").innerHTML = `<button class="btn" id="go">${i < qs.length - 1 ? "Question suivante →" : "Voir mon résultat"}</button>`;
+      el.querySelector("#go").onclick = () => quiz(qs, i + 1, score + (ok ? 1 : 0), fin, titre);
+    });
+  }
+  function lecon() {
+    const n = parseInt(C.id.slice(1), 10);
+    histoire(0, () => quiz(C.quiz, 0, 0, (sc) => {
+      const faites = store.get("lecons", []); if (!faites.includes(n)) faites.push(n); store.set("lecons", faites);
+      const el = screen(`${top()}<div class="grow center">
+        <div class="duo"><img class="perso bob pop" src="${IMG}bip_bravo.svg" alt=""><img class="perso bob" src="${IMG}lou_permis.svg" alt=""></div>
+        <h1>Leçon ${n} validée !</h1><p><b>Quiz : ${sc}/${C.quiz.length}</b></p>
+        <p>🏁 Leçons validées : <b>${faites.length}/10</b></p>
+        <div class="dots">${Array.from({ length: 10 }, (_, j) => `<i class="${faites.includes(j + 1) ? "on" : ""}"></i>`).join("")}</div>
+        <label class="check" style="max-width:520px;margin:12px auto"><input type="checkbox" id="defi" ${store.get("defi" + n, false) ? "checked" : ""}> 🚦 Défi de la semaine accepté !</label>
+        <p class="hint">N'oubliez pas de signer la leçon dans le livre.</p>
+        <div class="row c">${n < 10 ? `<a class="btn" href="../v${String(n + 1).padStart(2, "0")}/">Leçon ${n + 1} →</a>` : `<a class="btn" href="../v11/">L'examen du code →</a>`}<a class="btn sec" href="../">Toutes les leçons</a></div>
+        </div><canvas id="confetti"></canvas>`, true);
+      el.querySelector("#defi").onchange = (e) => store.set("defi" + n, e.target.checked);
+      confetti(el.querySelector("#confetti")); chime();
+    }, `Leçon ${n}`));
+  }
+  function permis(nomInit) {
+    const d = new Date().toLocaleDateString("fr-FR");
+    const el = screen(`${top()}<div class="grow center">
+      <h1>Ton permis écran</h1>
+      <label class="f" for="nom">Prénom du conducteur</label><input type="text" id="nom" maxlength="30" value="${esc(nomInit || store.get("prenom", ""))}" placeholder="ex. Lou" style="max-width:360px">
+      <div id="carte" style="margin:18px auto;width:min(92vw,420px);aspect-ratio:1.586;background:#fff;color:#1d1b22;border:4px solid #1d1b22;border-radius:18px;box-shadow:8px 8px 0 #1d1b22;display:flex;gap:12px;padding:14px;text-align:left;position:relative">
+        <div style="flex:0 0 32%"><img src="${IMG}lou_permis.svg" style="width:100%"></div>
+        <div style="flex:1"><div style="font:800 1.3rem system-ui;letter-spacing:.06em">PERMIS ÉCRAN</div>
+        <div style="margin-top:6px">Conducteur : <b id="cn">${esc(store.get("prenom", "") || "……")}</b></div><div>Obtenu le : <b>${d}</b></div>
+        <div style="margin-top:6px">Points : <b style="color:#ff5a4e">●●●●●●●●●●●●</b> 12/12</div>
+        <div style="font-size:.8rem;margin-top:6px">Délivré par Bip, moniteur · Éditions Allumées</div></div>
+        <img src="${IMG}bip_bravo.svg" style="position:absolute;right:6px;bottom:6px;width:22%"></div>
+      <div class="row c"><button class="btn" id="print">🖨️ Imprimer mon permis</button><a class="btn sec" href="../">Toutes les leçons</a></div>
+      </div><canvas id="confetti"></canvas>
+      <style>@media print{body{background:#fff}#app>*:not(.grow){display:none}.grow>*:not(#carte){display:none!important}#carte{box-shadow:none!important}canvas{display:none}}</style>`, true);
+    const nom = el.querySelector("#nom");
+    nom.oninput = () => { store.set("prenom", nom.value.trim()); el.querySelector("#cn").textContent = nom.value.trim() || "……"; };
+    el.querySelector("#print").onclick = () => window.print();
+    confetti(el.querySelector("#confetti")); chime();
+  }
+  function examen() {
+    const el = screen(`${top()}<div class="grow center"><div class="duo"><img class="perso bob" src="${IMG}bip_explique.svg" alt=""></div>
+      <h1>L'examen du code</h1><p><b>${C.quiz.length} questions, comme le vrai ! Il faut ${C.seuil} bonnes réponses pour réussir.</b></p>
+      <div class="row c"><button class="btn" id="go">Je suis prêt →</button></div>
+      <p class="hint" style="margin-top:16px"><a href="#" id="vid" style="color:inherit">Version vidéo</a></p></div>`, true);
+    el.querySelector("#vid").onclick = (e) => { e.preventDefault(); video(); };
+    el.querySelector("#go").onclick = () => { audio(); quiz(C.quiz, 0, 0, (sc) => {
+      const ok = sc >= C.seuil; store.set("examen", Math.max(sc, store.get("examen", 0)));
+      const r = screen(`${top()}<div class="grow center"><div class="duo"><img class="perso bob pop" src="${IMG}${ok ? "bip_bravo" : "bip_explique"}.svg" alt=""></div>
+        <h1>${ok ? "Examen réussi !" : "Presque !"}</h1><p style="font-size:1.4rem"><b>${sc} / ${C.quiz.length}</b></p>
+        <p>${ok ? "Prochaine étape : une semaine de conduite accompagnée, puis la remise du permis !" : `Il faut ${C.seuil} bonnes réponses. Relis les règles de conduite et retente ta chance.`}</p>
+        <div class="row c">${ok ? `<button class="btn" id="pm">Voir mon permis →</button>` : `<button class="btn" id="re">Retenter l'examen</button>`}<a class="btn sec" href="../">Toutes les leçons</a></div></div>
+        ${ok ? '<canvas id="confetti"></canvas>' : ""}`, true);
+      if (ok) { confetti(r.querySelector("#confetti")); chime(); r.querySelector("#pm").onclick = () => permis(); }
+      else r.querySelector("#re").onclick = examen;
+    }, "Examen du code"); };
+  }
+
+  if (C.type === "cartes") cartes(0);
+  else if (C.type === "lecon") lecon();
+  else if (C.type === "examen") examen();
+  else if (C.type === "ceremonie") histoire(0, () => permis());
+  else accueil();
 })();

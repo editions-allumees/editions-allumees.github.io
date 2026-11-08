@@ -1,0 +1,70 @@
+/* Lecteur de session interactif — Éditions Allumées. Aucun service tiers, aucun traceur. */
+:root { --ink:#1d1b22; --night:#1d1b22; --card:#2a2731; --cream:#fff8e7; --mut:#b0aaba; --sun:#ffd23f; --coral:#ff5a4e; --teal:#2ec4b6; }
+* { box-sizing: border-box; }
+html, body { margin: 0; min-height: 100%; }
+body { background: var(--night); color: var(--cream); font: 17px/1.5 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; }
+body.jour { background: var(--sun); color: var(--ink); }
+#app { max-width: 920px; margin: 0 auto; padding: 16px 16px 40px; min-height: 100vh; display: flex; flex-direction: column; }
+.top { display: flex; justify-content: space-between; align-items: center; gap: 8px; font-size: .85rem; opacity: .8; }
+.top a { color: inherit; }
+h1 { font-size: clamp(1.8rem, 6vw, 2.8rem); line-height: 1.05; margin: .3em 0 .2em; letter-spacing: -.01em; }
+h2 { font-size: clamp(1.3rem, 4.5vw, 1.9rem); line-height: 1.15; margin: .2em 0 .4em; }
+p { margin: .3em 0 .8em; }
+.center { text-align: center; }
+.grow { flex: 1; display: flex; flex-direction: column; justify-content: center; }
+.btn { display: inline-flex; align-items: center; gap: 8px; border: 3px solid var(--ink); background: var(--coral); color: #fff; font: 700 1.1rem system-ui, sans-serif; padding: 12px 22px; border-radius: 14px; cursor: pointer; box-shadow: 4px 4px 0 var(--ink); text-decoration: none; }
+.btn:active { transform: translate(3px, 3px); box-shadow: 1px 1px 0 var(--ink); }
+.btn[disabled] { opacity: .4; cursor: not-allowed; }
+.btn.sec { background: #fff; color: var(--ink); }
+body:not(.jour) .btn { border-color: var(--cream); box-shadow: 4px 4px 0 #000; }
+body:not(.jour) .btn.sec { background: var(--card); color: var(--cream); }
+.row { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
+.row.c { justify-content: center; }
+.chips { display: flex; gap: 8px; flex-wrap: wrap; justify-content: center; margin: 10px 0; }
+.chip { border: 2px solid currentColor; background: transparent; color: inherit; padding: 6px 14px; border-radius: 99px; cursor: pointer; font: 600 .95rem system-ui, sans-serif; }
+.chip.on { background: var(--ink); color: var(--sun); border-color: var(--ink); }
+body:not(.jour) .chip.on { background: var(--sun); color: var(--ink); border-color: var(--sun); }
+label.f { display: block; font-weight: 700; margin: 14px 0 6px; }
+input[type=text], textarea { width: 100%; font: 1.05rem system-ui, sans-serif; padding: 12px 14px; border-radius: 12px; border: 3px solid var(--ink); background: #fff; color: var(--ink); }
+textarea { min-height: 70px; resize: vertical; }
+.check { display: flex; gap: 12px; align-items: center; padding: 10px 12px; background: rgba(255,255,255,.55); border: 2px solid var(--ink); border-radius: 12px; margin: 8px 0; cursor: pointer; font-weight: 600; }
+.check input { width: 24px; height: 24px; accent-color: var(--coral); }
+.hint { font-size: .9rem; opacity: .75; }
+.perso { width: min(42vw, 190px); }
+.bob { animation: bob 2.4s ease-in-out infinite; transform-origin: 50% 90%; }
+@keyframes bob { 0%,100% { transform: translateY(0) rotate(-1deg); } 50% { transform: translateY(-8px) rotate(1.5deg); } }
+.wiggle { animation: wig 1.2s ease-in-out infinite; }
+@keyframes wig { 0%,100% { transform: rotate(-4deg); } 50% { transform: rotate(4deg); } }
+.pop { animation: pop .45s cubic-bezier(.2,1.6,.4,1) both; }
+@keyframes pop { from { transform: scale(.6); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+
+/* Écran de session */
+.tache { background: var(--card); border-radius: 14px; padding: 10px 14px; margin-top: 10px; }
+.tache b { color: var(--sun); }
+.ringbox { position: relative; width: min(62vw, 360px); aspect-ratio: 1; margin: 18px auto 6px; }
+.ringbox svg { width: 100%; height: 100%; transform: rotate(-90deg); }
+.ringbox .t { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+.ringbox .mm { font: 700 clamp(3rem, 15vw, 5.6rem)/1 system-ui, sans-serif; font-variant-numeric: tabular-nums; }
+.ringbox .fin { color: var(--sun); font-weight: 700; margin-top: 6px; }
+.msg { min-height: 2.6em; text-align: center; font-weight: 800; color: var(--sun); font-size: 1.15rem; }
+.doudou-coin { display: block; width: min(30vw, 130px); margin: 16px auto 0; pointer-events: none; }
+.plutard-pop { position: fixed; top: 10px; left: 50%; transform: translateX(-50%); width: min(94vw, 520px); display: flex; align-items: center; gap: 10px; z-index: 15; background: var(--cream); color: var(--ink); border: 3px solid var(--ink); border-radius: 18px; padding: 8px 12px; box-shadow: 5px 5px 0 #000; animation: drop .5s cubic-bezier(.2,1.4,.4,1) both; }
+.plutard-pop img { width: 84px; flex: 0 0 84px; }
+.plutard-pop .bulle { font: italic 700 1.05rem/1.25 Georgia, serif; }
+.plutard-pop button { display: block; margin-top: 8px; }
+@keyframes drop { from { transform: translate(-50%, -140%); } to { transform: translate(-50%, 0); } }
+@keyframes slidein { from { transform: translateX(-120%); } to { transform: none; } }
+.parking { position: fixed; inset: auto 0 0 0; background: var(--cream); color: var(--ink); padding: 16px; border-radius: 20px 20px 0 0; z-index: 10; box-shadow: 0 -6px 30px rgba(0,0,0,.4); max-width: 920px; margin: 0 auto; }
+.badge { background: var(--sun); color: var(--ink); border-radius: 99px; padding: 0 8px; font-weight: 800; margin-left: 4px; }
+.alerte { background: var(--coral); color: #fff; border-radius: 12px; padding: 8px 12px; text-align: center; font-weight: 800; }
+.etape-txt { font: 800 clamp(1.4rem, 5.5vw, 2.2rem)/1.25 system-ui, sans-serif; text-align: center; white-space: pre-line; }
+.dots { display: flex; gap: 6px; justify-content: center; margin: 14px 0; }
+.dots i { width: 10px; height: 10px; border-radius: 50%; background: currentColor; opacity: .25; }
+.dots i.on { opacity: 1; }
+.duo { display: flex; justify-content: center; align-items: flex-end; gap: 20px; }
+.vol { width: 140px; }
+canvas#confetti { position: fixed; inset: 0; pointer-events: none; z-index: 20; }
+.histo { font-size: .92rem; background: rgba(255,255,255,.6); border-radius: 12px; padding: 10px 14px; text-align: left; }
+.histo li { margin: 2px 0; }
+video { width: 100%; border-radius: 12px; background: #000; }
+footer { margin-top: auto; padding-top: 20px; font-size: .8rem; opacity: .65; text-align: center; }
