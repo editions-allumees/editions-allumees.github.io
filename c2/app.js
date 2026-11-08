@@ -299,6 +299,11 @@
     el.querySelector("#print").onclick = () => window.print();
     confetti(el.querySelector("#confetti")); chime();
   }
+  function partager(texte) {
+    const url = location.href.replace(/v\d+\/?(#.*)?$/, "");
+    if (navigator.share) { navigator.share({ title: C.livre, text: texte, url }).catch(() => {}); return; }
+    try { navigator.clipboard.writeText(texte + " " + url); alert("Texte copié : il ne reste plus qu'à le coller !"); } catch (e) { prompt("Copie ce texte :", texte + " " + url); }
+  }
   function examen() {
     const el = screen(`${top()}<div class="grow center"><div class="duo"><img class="perso bob" src="${IMG}bip_explique.svg" alt=""></div>
       <h1>L'examen du code</h1><p><b>${C.quiz.length} questions, comme le vrai ! Il faut ${C.seuil} bonnes réponses pour réussir.</b></p>
@@ -310,8 +315,9 @@
       const r = screen(`${top()}<div class="grow center"><div class="duo"><img class="perso bob pop" src="${IMG}${ok ? "bip_bravo" : "bip_explique"}.svg" alt=""></div>
         <h1>${ok ? "Examen réussi !" : "Presque !"}</h1><p style="font-size:1.4rem"><b>${sc} / ${C.quiz.length}</b></p>
         <p>${ok ? "Prochaine étape : une semaine de conduite accompagnée, puis la remise du permis !" : `Il faut ${C.seuil} bonnes réponses. Relis les règles de conduite et retente ta chance.`}</p>
-        <div class="row c">${ok ? `<button class="btn" id="pm">Voir mon permis →</button>` : `<button class="btn" id="re">Retenter l'examen</button>`}<a class="btn sec" href="../">Toutes les leçons</a></div></div>
+        <div class="row c">${ok ? `<button class="btn" id="pm">Voir mon permis →</button>` : `<button class="btn" id="re">Retenter l'examen</button>`}<button class="btn sec" id="sh">📣 Défier un ami</button><a class="btn sec" href="../">Toutes les leçons</a></div></div>
         ${ok ? '<canvas id="confetti"></canvas>' : ""}`, true);
+      r.querySelector("#sh").onclick = () => partager(`🚦 ${sc}/30 à l'examen du code des écrans ! Ton enfant ferait mieux ? Testez-vous en famille :`);
       if (ok) { confetti(r.querySelector("#confetti")); chime(); r.querySelector("#pm").onclick = () => permis(); }
       else r.querySelector("#re").onclick = examen;
     }, "Examen du code"); };
