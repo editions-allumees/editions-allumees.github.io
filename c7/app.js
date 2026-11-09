@@ -281,21 +281,32 @@
   }
   function permis(nomInit) {
     const d = new Date().toLocaleDateString("fr-FR");
+    const AV = [["lou_permis", "Lou garçon"], ["loufille_permis", "Lou fille"], ["bip_bravo", "Bip"]];
+    let av = store.get("avatar", "lou_permis");
     const el = screen(`${top()}<div class="grow center">
       <h1>Ton permis écran</h1>
       <label class="f" for="nom">Prénom du conducteur</label><input type="text" id="nom" maxlength="30" value="${esc(nomInit || store.get("prenom", ""))}" placeholder="ex. Lou" style="max-width:360px">
-      <div id="carte" style="margin:18px auto;width:min(92vw,420px);aspect-ratio:1.586;background:#fff;color:#1d1b22;border:4px solid #1d1b22;border-radius:18px;box-shadow:8px 8px 0 #1d1b22;display:flex;gap:12px;padding:14px;text-align:left;position:relative">
-        <div style="flex:0 0 32%"><img src="${IMG}lou_permis.svg" style="width:100%"></div>
-        <div style="flex:1"><div style="font:800 1.3rem system-ui;letter-spacing:.06em">PERMIS ÉCRAN</div>
-        <div style="margin-top:6px">Conducteur : <b id="cn">${esc(store.get("prenom", "") || "……")}</b></div><div>Obtenu le : <b>${d}</b></div>
-        <div style="margin-top:6px">Points : <b style="color:#ff5a4e">●●●●●●●●●●●●</b> 12/12</div>
-        <div style="font-size:.8rem;margin-top:6px">Délivré par Bip, moniteur · Éditions Allumées</div></div>
-        <img src="${IMG}bip_bravo.svg" style="position:absolute;right:6px;bottom:6px;width:22%"></div>
+      <p class="hint" style="margin-top:12px">Choisis ta photo :</p>
+      <div class="chips" id="avs">${AV.map(([k, l]) => `<button class="chip ${k === av ? "on" : ""}" data-k="${k}"><img src="${IMG}${k}.svg" alt="" style="width:34px;vertical-align:middle"> ${l}</button>`).join("")}</div>
+      <div id="carte" style="margin:16px auto;width:min(94vw,440px);aspect-ratio:1.586;background:#dfe8f1;color:#1d1b22;border-radius:18px;box-shadow:8px 8px 0 #1d1b22;display:flex;text-align:left;position:relative;overflow:hidden;border:3px solid #1d1b22">
+        <div style="flex:0 0 13%;background:#1f4fa3;color:#fff;display:flex;flex-direction:column;align-items:center;justify-content:space-between;padding:10px 0;font:800 .6rem system-ui">
+          <div style="display:grid;grid-template-columns:repeat(3,6px);gap:4px">${"<i style='width:6px;height:6px;border-radius:50%;background:#fff;display:block'></i>".repeat(12)}</div>
+          <div style="border:2px solid #fff;width:30px;height:30px;display:flex;align-items:center;justify-content:center;font:800 1.1rem system-ui">É</div><div>12 PTS</div></div>
+        <div style="flex:1;padding:10px 12px;position:relative">
+          <div style="font:800 .62rem system-ui;letter-spacing:.1em;color:#1f4fa3">RÉPUBLIQUE DU SALON</div>
+          <div style="font:800 1rem system-ui">PERMIS ÉCRAN</div>
+          <div style="display:flex;gap:10px;margin-top:6px">
+            <div style="flex:0 0 34%;aspect-ratio:.8;background:#fff;border:2px solid #9fb3c8;border-radius:6px"><img id="photo" src="${IMG}${av}.svg" style="width:100%;height:100%;object-fit:contain"></div>
+            <div style="font:700 .82rem/1.55 system-ui;color:#33405a"><b style="color:#1f4fa3">1.</b> <span id="cn">${esc(store.get("prenom", "") || "……")}</span><br><b style="color:#1f4fa3">4a.</b> ${d}<br><b style="color:#1f4fa3">4c.</b> Bip, moniteur<br><b style="color:#1f4fa3">9.</b> A · B · C · D<br><span style="color:#ff5a4e">●●●●●●●●●●●●</span> 12/12</div></div>
+          <div style="position:absolute;right:10px;bottom:10px;width:46px;height:46px;border-radius:50%;background:conic-gradient(#7af,#a7f,#f7a,#fd7,#7fd,#7af);opacity:.75"></div>
+          <div style="position:absolute;left:12px;bottom:6px;font:italic 700 1rem Georgia,serif" id="sig">${esc(store.get("prenom", ""))}</div></div></div>
+      <p class="hint">Parodie : ce permis n'a aucune valeur officielle… sauf à la maison !</p>
       <div class="row c"><button class="btn" id="print">🖨️ Imprimer mon permis</button><a class="btn sec" href="../">Toutes les leçons</a></div>
       </div><canvas id="confetti"></canvas>
       <style>@media print{body{background:#fff}#app>*:not(.grow){display:none}.grow>*:not(#carte){display:none!important}#carte{box-shadow:none!important}canvas{display:none}}</style>`, true);
     const nom = el.querySelector("#nom");
-    nom.oninput = () => { store.set("prenom", nom.value.trim()); el.querySelector("#cn").textContent = nom.value.trim() || "……"; };
+    nom.oninput = () => { const v = nom.value.trim(); store.set("prenom", v); el.querySelector("#cn").textContent = v || "……"; el.querySelector("#sig").textContent = v; };
+    el.querySelectorAll("#avs .chip").forEach((b) => b.onclick = () => { el.querySelectorAll("#avs .chip").forEach((x) => x.classList.remove("on")); b.classList.add("on"); av = b.dataset.k; store.set("avatar", av); el.querySelector("#photo").src = IMG + av + ".svg"; });
     el.querySelector("#print").onclick = () => window.print();
     confetti(el.querySelector("#confetti")); chime();
   }
