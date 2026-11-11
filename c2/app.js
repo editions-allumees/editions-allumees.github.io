@@ -63,7 +63,7 @@
   const heure = (ts) => { const d = new Date(ts); return d.getHours() + " h " + String(d.getMinutes()).padStart(2, "0"); };
   const top = () => `<div class="top"><span>${esc(C.livre)} · ${C.id}</span><a href="../">Toutes les vidéos</a></div>`;
   let timer = null; const clearT = () => { if (timer) cancelAnimationFrame(timer); timer = null; };
-  function screen(html, jour) { clearT(); document.body.classList.toggle("jour", !!jour); app.innerHTML = html; window.scrollTo(0, 0); return app; }
+  function screen(html, jour) { clearT(); document.querySelectorAll(".plutard-pop, .parking").forEach((e) => e.remove()); document.body.classList.toggle("jour", !!jour); app.innerHTML = html; window.scrollTo(0, 0); return app; }
 
   /* ---------- Compte à rebours robuste (basé sur l'horloge, fonctionne écran en veille) ---------- */
   function countdown({ secondes, titre, message, cues = [], doudou = "doudou_bosse", suite, passer, tache = true }) {
@@ -185,6 +185,11 @@
       victoire("Victoire !", pick(VICTOIRE), true);
     };
   }
+  function demandeAvis(cle) {
+    if (store.get("avis-" + cle, false)) return "";
+    store.set("avis-" + cle, true);
+    return `<div class="tip" style="background:rgba(255,255,255,.75);border-radius:14px;padding:12px 16px;margin:14px auto;max-width:520px;text-align:left">⭐ <b>Ces sessions t'aident ?</b> Dis-le aux autres lecteurs : ton avis honnête sur Amazon, en deux phrases, compte énormément pour une petite maison d'édition. <a href="../avis/" style="color:inherit;font-weight:800">Donner mon avis →</a></div>`;
+  }
   function victoire(titre, texte, compte) {
     let n = store.get("rounds", 0); if (compte) { n += 1; store.set("rounds", n); }
     const h = store.get("historique", []);
@@ -192,6 +197,7 @@
       <div class="duo"><img class="perso wiggle" src="${IMG}plutard_boude.svg" alt="Plutard qui boude"><img class="perso bob pop" src="${IMG}doudou_bravo.svg" alt="Doudou qui fête"></div>
       <h1>${esc(titre)}</h1><p><b>${esc(texte)}</b></p>
       ${n ? `<p style="font-size:1.3rem">🏆 Rounds gagnés contre Plutard : <b>${n}</b></p>` : ""}
+      ${compte && (n === 3 || n === 10) ? demandeAvis("rounds" + n) : ""}
       ${compte ? `<div class="row c"><button class="btn" id="dl">📄 Télécharger ma fiche</button><a class="btn sec" href="./">Une autre session</a><a class="btn sec" href="../">Toutes les vidéos</a></div>` : `<div class="row c"><a class="btn" href="../">Toutes les vidéos</a></div>`}
       ${h.length > 1 ? `<details style="margin-top:18px"><summary>Mes dernières sessions</summary><ul class="histo">${h.slice(0, 7).map((x) => `<li>${new Date(x.date).toLocaleDateString("fr-FR")} · ${esc(x.video)} · ${esc(x.tache)}</li>`).join("")}</ul></details>` : ""}
       </div><canvas id="confetti"></canvas>`, true);
@@ -301,6 +307,7 @@
           <div style="position:absolute;right:10px;bottom:10px;width:46px;height:46px;border-radius:50%;background:conic-gradient(#7af,#a7f,#f7a,#fd7,#7fd,#7af);opacity:.75"></div>
           <div style="position:absolute;left:12px;bottom:6px;font:italic 700 1rem Georgia,serif" id="sig">${esc(store.get("prenom", ""))}</div></div></div>
       <p class="hint">Parodie : ce permis n'a aucune valeur officielle… sauf à la maison !</p>
+      ${demandeAvis("permis")}
       <div class="row c"><button class="btn" id="print">🖨️ Imprimer mon permis</button><a class="btn sec" href="../">Toutes les leçons</a></div>
       </div><canvas id="confetti"></canvas>
       <style>@media print{body{background:#fff}#app>*:not(.grow){display:none}.grow>*:not(#carte){display:none!important}#carte{box-shadow:none!important}canvas{display:none}}</style>`, true);
