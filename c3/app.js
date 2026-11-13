@@ -395,13 +395,13 @@
     const suiv = n < 20 ? `../m${String(n + 1).padStart(2, "0")}/` : "../v02/";
     const el = screen(`${top()}<div class="grow center">
       ${jauge(g)}
-      <h1>${ok ? "Mission accomplie !" : g >= 70 ? "Bouillon a débordé…" : "Presque !"}</h1>
-      <p>${ok ? "Bouillon est redescendu. Tout le monde a gardé la face." : "Ça arrive aussi dans la vraie vie. Rejoue la mission : essaie de nommer l'émotion et de proposer un choix."}</p>
+      <h1>${ok ? "Mission accomplie !" : "Essaie une autre réponse"}</h1>
+      <p>${ok ? "Bouillon est redescendu. Tout le monde a gardé la face." : g >= 70 ? "Bouillon bout encore : c'est exactement à ça que sert l'entraînement. Rejoue en nommant l'émotion, puis en proposant un choix." : "Tu y es presque ! Une réplique de plus pour nommer l'émotion ou proposer un choix, et Bouillon passe au vert."}</p>
       <div style="background:#fff;color:#1d1b22;border-radius:14px;padding:12px 16px;max-width:520px;margin:12px auto"><b>La phrase à retenir</b><br>${esc(C.phrase)}</div>
-      <p>🏅 Missions accomplies : <b>${faites.length}/20</b></p>
-      <div class="dots">${Array.from({ length: 20 }, (_, j) => `<i class="${faites.includes(j + 1) ? "on" : ""}"></i>`).join("")}</div>
+      ${faites.length ? `<p>🏅 Missions accomplies : <b>${faites.length}/20</b></p>
+      <div class="dots">${Array.from({ length: 20 }, (_, j) => `<i class="${faites.includes(j + 1) ? "on" : ""}"></i>`).join("")}</div>` : ""}
       ${ok && faites.length === 5 ? demandeAvis("missions5") : ""}
-      <div class="row c">${ok ? `<a class="btn" href="${suiv}">${n < 20 ? "Mission suivante →" : "Débriefing final →"}</a>` : ""}<button class="btn ${ok ? "sec" : ""}" id="re">Rejouer</button><a class="btn sec" href="../">Toutes les missions</a></div>
+      <div class="row c">${ok ? `<a class="btn" href="${suiv}">${n < 20 ? "Mission suivante →" : "Débriefing final →"}</a>` : ""}<button class="btn ${ok ? "sec" : ""}" id="re">${ok ? "Rejouer" : "Rejouer la mission"}</button><a class="btn sec" href="../">Toutes les missions</a></div>
       </div>${ok ? '<canvas id="confetti"></canvas>' : ""}`, true);
     el.querySelector("#re").onclick = () => mission();
     if (ok) { confetti(el.querySelector("#confetti")); chime(); }
