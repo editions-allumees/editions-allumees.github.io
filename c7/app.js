@@ -61,7 +61,7 @@
   const pick = (a) => a[Math.floor(Math.random() * a.length)];
   const mmss = (s) => { s = Math.max(0, Math.ceil(s)); return String(Math.floor(s / 60)).padStart(2, "0") + ":" + String(s % 60).padStart(2, "0"); };
   const heure = (ts) => { const d = new Date(ts); return d.getHours() + " h " + String(d.getMinutes()).padStart(2, "0"); };
-  const top = () => `<div class="top"><span>${esc(C.livre)} · ${C.id}</span><a href="../">Toutes les vidéos</a></div>`;
+  const top = () => `<div class="top"><span>${esc(C.livre)} · ${C.id}</span><a href="../">${C.type === "mission" ? "Toutes les missions" : "Toutes les vidéos"}</a></div>`;
   let timer = null; const clearT = () => { if (timer) cancelAnimationFrame(timer); timer = null; };
   function screen(html, jour) { clearT(); document.querySelectorAll(".plutard-pop, .parking").forEach((e) => e.remove()); document.body.classList.toggle("jour", !!jour); app.innerHTML = html; window.scrollTo(0, 0); return app; }
 
@@ -221,9 +221,9 @@
       ${img ? `<div class="duo"><img class="perso bob pop" src="${IMG}${img}.svg" alt=""></div>` : ""}
       <h1 class="pop">${esc(t)}</h1><p style="font-size:1.2rem;white-space:pre-line"><b>${esc(s)}</b></p>
       <div class="dots">${k.map((_, j) => `<i class="${j === i ? "on" : ""}"></i>`).join("")}</div>
-      <div class="row c">${i > 0 ? `<button class="btn sec" id="prev">←</button>` : ""}<button class="btn" id="next">${i < k.length - 1 ? "Suivant →" : C.id === "V00" ? "Ma première session →" : "Toutes les vidéos"}</button></div>
+      <div class="row c">${i > 0 ? `<button class="btn sec" id="prev">←</button>` : ""}<button class="btn" id="next">${i < k.length - 1 ? "Suivant →" : C.id === "V00" ? (C.suite_label || "Ma première session →") : "Toutes les vidéos"}</button></div>
       <p class="hint" style="margin-top:16px"><a href="#" id="vid" style="color:inherit">Version vidéo</a></p></div>`, true);
-    el.querySelector("#next").onclick = () => { audio(); if (i < k.length - 1) cartes(i + 1); else location.href = C.id === "V00" ? "../v01/" : "../"; };
+    el.querySelector("#next").onclick = () => { audio(); if (i < k.length - 1) cartes(i + 1); else location.href = C.id === "V00" ? (C.suite || "../v01/") : "../"; };
     const p = el.querySelector("#prev"); if (p) p.onclick = () => cartes(i - 1);
     el.querySelector("#vid").onclick = (e) => { e.preventDefault(); video(); };
   }
@@ -341,7 +341,74 @@
     }, "Examen du code"); };
   }
 
+
+  /* ---------- C3 : simulateur de mission (Bouillon monte ou redescend selon tes mots) ---------- */
+  function jauge(g) {
+    const col = g >= 70 ? "#e53935" : g >= 35 ? "#ff9f1c" : "#2ec4b6";
+    const img = g >= 70 ? "bouillon_bout" : g >= 35 ? "bouillon_mijote" : "bouillon_apaise";
+    return `<div style="display:flex;align-items:center;gap:12px;max-width:520px;margin:6px auto 10px">
+      <img src="${IMG}${img}.svg" alt="Bouillon" class="${g >= 70 ? "wiggle" : "bob"}" style="width:74px">
+      <div style="flex:1;text-align:left"><div style="font-weight:800;font-size:.9rem">Bouillon : ${g >= 70 ? "ça déborde !" : g >= 35 ? "ça mijote…" : "ça redescend"}</div>
+      <div style="height:16px;border-radius:9px;background:rgba(0,0,0,.15);overflow:hidden;border:2px solid currentColor"><i style="display:block;height:100%;width:${g}%;background:${col};transition:width .6s"></i></div></div></div>`;
+  }
+  function enfantImg(g) { return C.enfant === "Titou" ? (g >= 70 ? "titou_crise" : g >= 35 ? "titou_otage" : "titou_calme") : null; }
+  function mission() {
+    const n = parseInt(C.id.slice(1), 10);
+    const el = screen(`${top()}<div class="grow center">
+      <p class="hint">Simulateur · mission ${n}/20</p><h1>${esc(C.titre)}</h1>
+      <div class="duo"><img class="perso bob" src="${IMG}${enfantImg(70) || "bouillon_bout"}.svg" alt=""></div>
+      <p><b>${esc(C.age)} · ${esc(C.alerte)} · ${esc(C.lieu)}</b></p>
+      <p style="font-size:1.15rem;max-width:560px;margin:8px auto">${esc(C.situation)}</p>
+      <p class="hint">Trois répliques, trois choix. À toi de faire redescendre Bouillon sous la zone verte.</p>
+      <div class="row c"><button class="btn" id="go">Commencer la mission →</button></div>
+      <p class="hint" style="margin-top:16px"><a href="#" id="vid" style="color:inherit">Voir la version vidéo « avant / après »</a></p></div>`, true);
+    el.querySelector("#go").onclick = () => { audio(); etapeSim(0, 70); };
+    el.querySelector("#vid").onclick = (e) => { e.preventDefault(); video(); };
+  }
+  function etapeSim(i, g) {
+    if (i >= C.etapes_sim.length) return finSim(g);
+    const E = C.etapes_sim[i], ch = E.choix.map((c, j) => ({ ...c, j })).sort(() => Math.random() - 0.5);
+    const im = enfantImg(g);
+    const el = screen(`${top()}<div class="grow center">
+      <p class="hint">${esc(C.titre)} · réplique ${i + 1}/${C.etapes_sim.length}</p>
+      <div id="jg">${jauge(g)}</div>
+      ${im ? `<div class="duo"><img class="perso bob" id="enf" src="${IMG}${im}.svg" alt="${esc(C.enfant)}" style="width:min(34vw,150px)"></div>` : ""}
+      <div style="background:#fff;color:#1d1b22;border:3px solid #1d1b22;border-radius:18px;padding:12px 18px;max-width:520px;margin:6px auto 14px;font:700 1.25rem/1.3 system-ui"><span style="opacity:.6;font-size:.9rem">${esc(C.enfant)} :</span><br>« ${esc(E.dit)} »</div>
+      <p><b>Et toi, tu réponds…</b></p>
+      <div style="display:grid;gap:10px;max-width:560px;margin:8px auto">${ch.map((c, k) => `<button class="btn sec" data-k="${k}" style="justify-content:flex-start;text-align:left;white-space:normal">${esc(c.t)}</button>`).join("")}</div>
+      <div class="msg" id="msg" style="color:inherit;max-width:560px;margin:10px auto"></div><div class="row c" id="nx"></div></div>`, true);
+    el.querySelectorAll("[data-k]").forEach((b) => b.onclick = () => {
+      audio(); const c = ch[+b.dataset.k], g2 = Math.max(0, Math.min(100, g + c.d)), bon = c.d <= -20;
+      el.querySelectorAll("[data-k]").forEach((x) => { x.disabled = true; x.style.opacity = x === b ? "1" : ".4"; });
+      b.style.background = bon ? "#2ec4b6" : c.d > 0 ? "#ff5a4e" : "#ffd23f"; b.style.color = bon || c.d > 0 ? "#fff" : "#1d1b22";
+      el.querySelector("#jg").innerHTML = jauge(g2);
+      const e2 = el.querySelector("#enf"); if (e2) e2.src = IMG + enfantImg(g2) + ".svg";
+      el.querySelector("#msg").innerHTML = `${bon ? "✅" : c.d > 0 ? "🔥" : "〰️"} ${esc(c.f)}`;
+      if (bon) chime();
+      el.querySelector("#nx").innerHTML = `<button class="btn" id="go">${i < C.etapes_sim.length - 1 ? "Réplique suivante →" : "Résultat de la mission"}</button>`;
+      el.querySelector("#go").onclick = () => etapeSim(i + 1, g2);
+    });
+  }
+  function finSim(g) {
+    const n = parseInt(C.id.slice(1), 10), ok = g <= 30;
+    const faites = store.get("missions", []); if (ok && !faites.includes(n)) { faites.push(n); store.set("missions", faites); }
+    const suiv = n < 20 ? `../m${String(n + 1).padStart(2, "0")}/` : "../v02/";
+    const el = screen(`${top()}<div class="grow center">
+      ${jauge(g)}
+      <h1>${ok ? "Mission accomplie !" : "Essaie une autre réponse"}</h1>
+      <p>${ok ? "Bouillon est redescendu. Tout le monde a gardé la face." : g >= 70 ? "Bouillon bout encore : c'est exactement à ça que sert l'entraînement. Rejoue en nommant l'émotion, puis en proposant un choix." : "Tu y es presque ! Une réplique de plus pour nommer l'émotion ou proposer un choix, et Bouillon passe au vert."}</p>
+      <div style="background:#fff;color:#1d1b22;border-radius:14px;padding:12px 16px;max-width:520px;margin:12px auto"><b>La phrase à retenir</b><br>${esc(C.phrase)}</div>
+      ${faites.length ? `<p>🏅 Missions accomplies : <b>${faites.length}/20</b></p>
+      <div class="dots">${Array.from({ length: 20 }, (_, j) => `<i class="${faites.includes(j + 1) ? "on" : ""}"></i>`).join("")}</div>` : ""}
+      ${ok && faites.length === 5 ? demandeAvis("missions5") : ""}
+      <div class="row c">${ok ? `<a class="btn" href="${suiv}">${n < 20 ? "Mission suivante →" : "Débriefing final →"}</a>` : ""}<button class="btn ${ok ? "sec" : ""}" id="re">${ok ? "Rejouer" : "Rejouer la mission"}</button><a class="btn sec" href="../">Toutes les missions</a></div>
+      </div>${ok ? '<canvas id="confetti"></canvas>' : ""}`, true);
+    el.querySelector("#re").onclick = () => mission();
+    if (ok) { confetti(el.querySelector("#confetti")); chime(); }
+  }
+
   if (C.type === "cartes") cartes(0);
+  else if (C.type === "mission") mission();
   else if (C.type === "lecon") lecon();
   else if (C.type === "examen") examen();
   else if (C.type === "ceremonie") histoire(0, () => permis());
